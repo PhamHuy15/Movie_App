@@ -1,10 +1,9 @@
 import { lazy, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createHashRouter, RouterProvider } from 'react-router-dom';
 import RootLayout from '@pages/RootLayout.jsx';
 import ModalProvider from '@context/ModalProvider';
-import { HashRouter } from 'react-router-dom';
 
 const HomePage = lazy(() => import('@pages/HomePage.jsx'));
 const MovieDetail = lazy(() => import('@pages/MovieDetail.jsx'));
@@ -12,7 +11,7 @@ const TvShowDetail = lazy(() => import('@pages/TvShowDetail.jsx'));
 const PeoplePage = lazy(() => import('@pages/PeoplePage.jsx'));
 const SearchPage = lazy(() => import('@pages/SearchPage.jsx'));
 
-const router = createBrowserRouter([
+const router = createHashRouter([
     {
         element: <RootLayout />,
         children: [
@@ -56,10 +55,8 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')).render(
     <StrictMode>
-        <HashRouter>
-            <ModalProvider>
-                <RouterProvider router={router} />
-            </ModalProvider>
-        </HashRouter>
+        <ModalProvider>
+            <RouterProvider router={router} />
+        </ModalProvider>
     </StrictMode>,
 );
