@@ -3,55 +3,57 @@ name: Deploy React/Vite to GitHub Pages
 
 # Chạy workflow này mỗi khi push code lên nhánh 'main'
 on:
-  push:
-    branches: [ "main" ]
-  # Cho phép bạn chạy workflow này thủ công từ tab Actions
-  workflow_dispatch:
+    push:
+        branches: ['main']
+    # Cho phép bạn chạy workflow này thủ công từ tab Actions
+    workflow_dispatch:
 
 # Cấp quyền cho workflow để ghi vào GitHub Pages
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+    contents: read
+    pages: write
+    id-token: write
 
 # Chỉ chạy 1 job deploy duy nhất
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      # 1. Lấy code từ repo về
-      - name: Checkout
-        uses: actions/checkout@v4
+    deploy:
+        runs-on: ubuntu-latest
+        steps:
+            # 1. Lấy code từ repo về
+            - name: Checkout
+              uses: actions/checkout@v4
 
-      # 2. Cài đặt Node.js (phiên bản 20)
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+            # 2. Cài đặt Node.js (phiên bản 20)
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
 
-      # 3. Cài đặt các thư viện (giống như npm install)
-      - name: Install dependencies
-        run: npm ci
+            # 3. Cài đặt các thư viện (giống như npm install)
+            - name: Install dependencies
+              run: npm ci
 
-      # 4. Build dự án (!!! QUAN TRỌNG !!!)
-      # Nếu dự án của bạn dùng lệnh khác, hãy sửa ở đây
-      - name: Build
-        run: npm run build
+            # 4. Build dự án (!!! QUAN TRỌNG !!!)
+            # Nếu dự án của bạn dùng lệnh khác, hãy sửa ở đây
+            - name: Build
+              run: npm run build
+              env:
+                  VITE_API_TOKEN: ${{ secrets.VITE_API_TOKEN }}
 
-      # 5. Cấu hình GitHub Pages
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
+            # 5. Cấu hình GitHub Pages
+            - name: Setup Pages
+              uses: actions/configure-pages@v5
 
-      # 6. Tải thư mục build (artifact) lên
-      # (!!! QUAN TRỌNG !!!)
-      # Nếu thư mục build của bạn tên là 'build' (React) chứ không phải 'dist' (Vite)
-      # hãy sửa 'path' ở dòng dưới thành './build'
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: './dist' 
+            # 6. Tải thư mục build (artifact) lên
+            # (!!! QUAN TRỌNG !!!)
+            # Nếu thư mục build của bạn tên là 'build' (React) chứ không phải 'dist' (Vite)
+            # hãy sửa 'path' ở dòng dưới thành './build'
+            - name: Upload artifact
+              uses: actions/upload-pages-artifact@v3
+              with:
+                  path: './dist'
 
-      # 7. Deploy lên GitHub Pages
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+            # 7. Deploy lên GitHub Pages
+            - name: Deploy to GitHub Pages
+              id: deployment
+              uses: actions/deploy-pages@v4
