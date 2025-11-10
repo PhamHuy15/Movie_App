@@ -39,6 +39,7 @@ jobs:
               run: npm run build
               env:
                   VITE_API_TOKEN: ${{ secrets.VITE_API_TOKEN }}
+                  VITE_API_HOST: ${{ secrets.VITE_API_HOST }}
 
             # 5. Cấu hình GitHub Pages
             - name: Setup Pages
