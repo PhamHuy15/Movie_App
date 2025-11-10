@@ -4,6 +4,7 @@ import './index.css';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import RootLayout from '@pages/RootLayout.jsx';
 import ModalProvider from '@context/ModalProvider';
+import { HashRouter } from 'react-router-dom';
 
 const HomePage = lazy(() => import('@pages/HomePage.jsx'));
 const MovieDetail = lazy(() => import('@pages/MovieDetail.jsx'));
@@ -55,8 +56,10 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')).render(
     <StrictMode>
-        <ModalProvider>
-            <RouterProvider router={router} />
-        </ModalProvider>
+        <HashRouter>
+            <ModalProvider>
+                <RouterProvider router={router} />
+            </ModalProvider>
+        </HashRouter>
     </StrictMode>,
 );
