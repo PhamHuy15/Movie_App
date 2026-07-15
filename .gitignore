@@ -16,6 +16,10 @@ test-results
 dist
 dist-ssr
 *.local
+<<<<<<< HEAD
+=======
+.env
+>>>>>>> 3bfb30b8f31b195d27bf4d6de80ee96adb36d76a
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
