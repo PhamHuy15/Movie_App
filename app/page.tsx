@@ -7,6 +7,9 @@ import { uniqueMovies } from '@/lib/utils';
 import { enrichHeroMovieImages } from '@/services/movie-image.service';
 import { homepageCollectionsService } from '@/services/homepage-collections.service';
 
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
+
 export default async function Home() {
     const [newResult, seriesResult, singleResult, animeResult] = await Promise.all([
         movieCatalogService.listNew(1),
