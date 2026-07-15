@@ -16,7 +16,8 @@ export function MovieCard({ movie }: { movie: Movie }) {
                         src={movie.posterUrl}
                         alt={`Poster ${movie.title}`}
                         fill
-                        sizes="(max-width: 768px) 42vw, 16vw"
+                        quality={85}
+                        sizes="(max-width: 639px) 42vw, (max-width: 767px) 29vw, (max-width: 1023px) 22vw, (max-width: 1279px) 17vw, 15vw"
                         className="object-cover transition duration-500 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/45">

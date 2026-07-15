@@ -16,12 +16,18 @@ export interface Movie {
     backdropUrl: string;
     year: number;
     rating: number;
+    ratingCount?: number;
+    viewCount?: number;
+    language?: string;
+    status?: string;
+    totalEpisodes?: number;
     genres: Genre[];
     country: Country;
     type: 'movie' | 'series';
     quality?: string;
     latestEpisode?: string;
     featured?: boolean;
+    badges?: string[];
 }
 export interface MovieCredit {
     id: number;
@@ -75,6 +81,36 @@ export interface WatchHistory {
     progress: number;
     duration: number;
     updatedAt: string;
+    season?: number;
+    episode?: number;
+}
+
+export interface CatalogQuery {
+    page?: number;
+    category?: string;
+    genre?: string;
+    country?: string;
+    keyword?: string;
+}
+
+export interface SearchQuery {
+    keyword: string;
+    page?: number;
+}
+
+export interface StreamQuery {
+    movieId: string;
+    season?: number;
+    episode?: number;
+}
+
+export interface MovieProvider {
+    listMovies(input: CatalogQuery): Promise<{ movies: Movie[]; totalPages: number; totalItems: number; currentPage: number }>;
+    getMovie(slug: string): Promise<MovieDetail | null>;
+    searchMovies(input: SearchQuery): Promise<{ movies: Movie[]; totalPages: number; totalItems: number; currentPage: number }>;
+    getGenres(): Promise<Genre[]>;
+    getCountries(): Promise<Country[]>;
+    getStreamSources(input: StreamQuery): Promise<StreamSource[]>;
 }
 export interface FavoriteMovie {
     movieId: number;

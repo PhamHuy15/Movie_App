@@ -11,9 +11,11 @@ interface VideoPlayerProps {
     source: StreamSource;
     onEnded?: () => void;
     onSourceError?: () => boolean;
+    season?: number;
+    episode?: number;
 }
 
-export function VideoPlayer({ movie, source, onEnded, onSourceError }: VideoPlayerProps) {
+export function VideoPlayer({ movie, source, onEnded, onSourceError, season, episode }: VideoPlayerProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [error, setError] = useState('');
     const [retryKey, setRetryKey] = useState(0);
@@ -22,29 +24,33 @@ export function VideoPlayer({ movie, source, onEnded, onSourceError }: VideoPlay
     useEffect(() => {
         const video = videoRef.current;
         if (!video || source.type === 'embed') return;
-
         setError('');
         let hls: Hls | undefined;
-        const progressKey = `cineva-progress-${movie.id}`;
+        let fatalRetries = 0;
+        let lastSavedAt = 0;
+        const progressKey = `cineva-progress-${movie.id}-${season ?? 1}-${episode ?? 1}`;
+
+        const failover = (message: string) => {
+            if (!onSourceError?.()) setError(message);
+            hls?.destroy();
+        };
 
         if (source.type === 'hls') {
             if (video.canPlayType('application/vnd.apple.mpegurl')) {
                 video.src = source.url;
             } else if (Hls.isSupported()) {
-                hls = new Hls({ enableWorker: true, lowLatencyMode: false });
+                hls = new Hls({ enableWorker: true, lowLatencyMode: false, manifestLoadingMaxRetry: 1, levelLoadingMaxRetry: 1, fragLoadingMaxRetry: 2 });
                 hls.loadSource(source.url);
                 hls.attachMedia(video);
                 hls.on(Hls.Events.ERROR, (_event, data) => {
                     if (!data.fatal) return;
-                    if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls?.startLoad();
-                    else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls?.recoverMediaError();
-                    else {
-                        if (!onSourceError?.()) setError('Nguồn HLS không thể phát trên thiết bị này.');
-                        hls?.destroy();
-                    }
+                    fatalRetries += 1;
+                    if (fatalRetries === 1 && data.type === Hls.ErrorTypes.NETWORK_ERROR) return hls?.startLoad();
+                    if (fatalRetries === 1 && data.type === Hls.ErrorTypes.MEDIA_ERROR) return hls?.recoverMediaError();
+                    failover('Nguồn HLS không thể phát. Vui lòng thử server khác.');
                 });
             } else {
-                queueMicrotask(() => setError('Trình duyệt không hỗ trợ HLS.'));
+                queueMicrotask(() => failover('Trình duyệt không hỗ trợ HLS.'));
             }
         } else {
             video.src = source.url;
@@ -52,19 +58,20 @@ export function VideoPlayer({ movie, source, onEnded, onSourceError }: VideoPlay
 
         const restore = () => {
             const saved = Number(localStorage.getItem(progressKey) ?? 0);
-            if (Number.isFinite(saved) && saved < video.duration - 10) video.currentTime = saved;
+            if (Number.isFinite(saved) && saved > 0 && saved < video.duration - 10) video.currentTime = saved;
         };
-        const save = () => {
+        const save = (force = false) => {
+            if (!force && Date.now() - lastSavedAt < 10_000) return;
+            if (!Number.isFinite(video.currentTime) || video.currentTime <= 0) return;
+            lastSavedAt = Date.now();
             localStorage.setItem(progressKey, String(video.currentTime));
-            saveProgress(movie, video.currentTime, video.duration || 0);
+            saveProgress(movie, video.currentTime, video.duration || 0, season, episode);
         };
+        const saveTick = () => save(false);
+        const saveNow = () => save(true);
         const handleKeys = (event: KeyboardEvent) => {
             if (['INPUT', 'TEXTAREA', 'SELECT'].includes((event.target as HTMLElement).tagName)) return;
-            if (event.code === 'Space') {
-                event.preventDefault();
-                if (video.paused) void video.play();
-                else video.pause();
-            }
+            if (event.code === 'Space') { event.preventDefault(); if (video.paused) void video.play(); else video.pause(); }
             if (event.key.toLowerCase() === 'm') video.muted = !video.muted;
             if (event.key.toLowerCase() === 'f') void video.requestFullscreen();
             if (event.key === 'ArrowRight') video.currentTime = Math.min(video.duration, video.currentTime + 10);
@@ -72,74 +79,26 @@ export function VideoPlayer({ movie, source, onEnded, onSourceError }: VideoPlay
         };
 
         video.addEventListener('loadedmetadata', restore);
-        video.addEventListener('timeupdate', save);
+        video.addEventListener('timeupdate', saveTick);
+        video.addEventListener('pause', saveNow);
         window.addEventListener('keydown', handleKeys);
-
         return () => {
+            save(true);
             hls?.destroy();
             video.removeEventListener('loadedmetadata', restore);
-            video.removeEventListener('timeupdate', save);
+            video.removeEventListener('timeupdate', saveTick);
+            video.removeEventListener('pause', saveNow);
             window.removeEventListener('keydown', handleKeys);
         };
-    }, [source, movie, saveProgress, retryKey, onSourceError]);
+    }, [source, movie, saveProgress, retryKey, onSourceError, season, episode]);
 
-    if (source.type === 'embed') {
-        return (
-            <div className="aspect-video w-full bg-black">
-                <iframe
-                    src={source.url}
-                    className="h-full w-full"
-                    allowFullScreen
-                    allow="autoplay; encrypted-media; picture-in-picture"
-                    title={`Trình phát ${movie.title}`}
-                    referrerPolicy="no-referrer-when-downgrade"
-                />
-            </div>
-        );
-    }
+    if (source.type === 'embed') return <div className="aspect-video w-full bg-black"><iframe src={source.url} className="h-full w-full" allowFullScreen allow="autoplay; encrypted-media; picture-in-picture" title={`Trình phát ${movie.title}`} referrerPolicy="origin" /></div>;
 
-    if (error) {
-        return (
-            <div className="grid aspect-video place-items-center bg-black px-6 text-center text-white/65">
-                <div>
-                    <AlertTriangle className="mx-auto mb-3 text-amber-400" />
-                    <p>{error}</p>
-                    <button
-                        onClick={() => setRetryKey((value) => value + 1)}
-                        className="mt-5 inline-flex items-center gap-2 rounded-full bg-white/10 px-5 py-2.5 font-medium hover:bg-white/15"
-                    >
-                        <RefreshCw size={16} />
-                        Thử lại
-                    </button>
-                </div>
-            </div>
-        );
-    }
+    if (error) return <div className="grid aspect-video place-items-center bg-black px-6 text-center text-white/65"><div><AlertTriangle className="mx-auto mb-3 text-amber-400" /><p>{error}</p><button onClick={() => setRetryKey((value) => value + 1)} className="mt-5 inline-flex items-center gap-2 rounded-full bg-white/10 px-5 py-2.5 font-medium hover:bg-white/15"><RefreshCw size={16} />Thử lại</button></div></div>;
 
     return (
-        <video
-            ref={videoRef}
-            controls
-            playsInline
-            muted
-            preload="metadata"
-            onEnded={onEnded}
-            onError={() => {
-                if (!onSourceError?.()) setError('Không thể tải nguồn phát. Vui lòng thử server khác.');
-            }}
-            className="aspect-video w-full bg-black"
-            aria-label={`Trình phát ${movie.title}`}
-        >
-            {source.subtitles?.map((track) => (
-                <track
-                    key={`${track.language}-${track.url}`}
-                    kind="subtitles"
-                    src={track.url}
-                    srcLang={track.language}
-                    label={track.label}
-                    default={track.default}
-                />
-            ))}
+        <video ref={videoRef} controls playsInline muted crossOrigin="anonymous" preload="metadata" poster={movie.backdropUrl} onEnded={onEnded} onError={() => { if (!onSourceError?.()) setError('Không thể tải nguồn phát. Vui lòng thử server khác.'); }} className="aspect-video w-full bg-black" aria-label={`Trình phát ${movie.title}`}>
+            {source.subtitles?.map((track) => <track key={`${track.language}-${track.url}`} kind="subtitles" src={track.url} srcLang={track.language} label={track.label} default={track.default} />)}
         </video>
     );
 }

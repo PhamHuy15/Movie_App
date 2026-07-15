@@ -48,9 +48,10 @@ export default async function Page({ params }: PageProps) {
                     src={movie.backdropUrl}
                     alt=""
                     fill
-                    priority
+                    preload
+                    quality={90}
+                    sizes="100vw"
                     className="object-cover object-top opacity-30"
-                    unoptimized
                 />
                 <div className="from-ink via-ink/50 absolute inset-0 bg-gradient-to-t to-black/20" />
                 <div className="from-ink/80 absolute inset-0 bg-gradient-to-r to-transparent" />
@@ -61,15 +62,16 @@ export default async function Page({ params }: PageProps) {
                             src={movie.posterUrl}
                             alt={`Poster ${movie.title}`}
                             fill
+                            quality={85}
+                            sizes="(max-width: 767px) 160px, 240px"
                             className="object-cover"
-                            unoptimized
                         />
                     </div>
 
                     <div className="max-w-3xl">
                         <div className="flex flex-wrap gap-2">
                             {movie.quality && (
-                                <span className="bg-brand rounded-full px-3 py-1 text-xs font-bold text-black">
+                                <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-black">
                                     {movie.quality}
                                 </span>
                             )}
@@ -138,7 +140,7 @@ export default async function Page({ params }: PageProps) {
                         <div className="mt-7 flex flex-wrap gap-3">
                             <Link
                                 href={`/watch/${movie.slug}`}
-                                className="bg-brand inline-flex h-12 items-center gap-2 rounded-full px-7 font-semibold text-black transition hover:brightness-110"
+                                className="inline-flex h-12 items-center gap-2 rounded-full bg-white px-7 font-semibold text-black transition hover:brightness-90"
                             >
                                 <Play size={18} fill="currentColor" />
                                 {hasEpisodes ? 'Xem phim' : 'Kiểm tra nguồn phát'}

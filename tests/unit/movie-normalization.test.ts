@@ -22,6 +22,8 @@ describe('normalizeNguoncFilm', () => {
             quality: 'HD',
         });
         expect(movie.posterUrl).toContain('phim.nguonc.com');
+        expect(movie.posterUrl).toBe('https://phim.nguonc.com/public/images/Post/8/manga-sat-lenh.jpg');
+        expect(movie.backdropUrl).toBe('https://phim.nguonc.com/public/images/Post/8/manga-sat-lenh-1.jpg');
     });
 
     it('xử lý phim lẻ (Full) đúng cách', () => {
@@ -40,5 +42,16 @@ describe('normalizeNguoncFilm', () => {
         const m1 = normalizeNguoncFilm({ name: 'A', slug: 'test-slug', thumb_url: '' });
         const m2 = normalizeNguoncFilm({ name: 'B', slug: 'test-slug', thumb_url: '' });
         expect(m1.id).toBe(m2.id);
+    });
+
+    it('dùng placeholder khi provider trả URL ảnh sai kiểu', () => {
+        const movie = normalizeNguoncFilm({
+            name: 'Ảnh lỗi',
+            slug: 'anh-loi',
+            thumb_url: [] as never,
+            poster_url: { url: 'invalid' } as never,
+        });
+        expect(movie.posterUrl).toBe('/placeholder.svg');
+        expect(movie.backdropUrl).toBe('/placeholder.svg');
     });
 });

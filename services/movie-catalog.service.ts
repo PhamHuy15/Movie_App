@@ -1,6 +1,7 @@
 import type { Movie, MovieDetail } from '@/types/movie';
 import { nguoncService, type NguoncCategorySlug, type NguoncListResponse } from '@/services/nguonc.service';
 import { normalizeNguoncDetail, normalizeNguoncFilm } from '@/services/nguonc-normalizer';
+import { resolveMovieImages } from '@/services/movie-image.service';
 
 export interface CatalogResult {
     movies: Movie[];
@@ -59,11 +60,20 @@ export const movieCatalogService = {
     async detail(slug: string): Promise<MovieDetail | null> {
         const data = await nguoncService.getFilmDetail(slug);
         const film = data?.movie ?? data?.film;
-        return film ? normalizeNguoncDetail(film) : null;
+        if (!film) return null;
+
+        const movie = normalizeNguoncDetail(film);
+        const images = await resolveMovieImages(movie);
+        return { ...movie, posterUrl: images.posterUrl, backdropUrl: images.backdropUrl };
     },
 
     async search(query: string, page = 1): Promise<Movie[]> {
         const result = await movieCatalogService.listBySearch(query, page);
         return result.movies;
+    },
+
+    async findById(id: number): Promise<Movie | null> {
+        const result = await movieCatalogService.listNew(1);
+        return result.movies.find((movie) => movie.id === id) ?? null;
     },
 };

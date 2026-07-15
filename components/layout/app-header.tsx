@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { SearchBox } from '@/components/search/search-box';
 
 const NAV_LINKS = [
+    { label: 'Trang chủ', href: '/' },
     { label: 'Phim mới', href: '/movies' },
     { label: 'Phim bộ', href: '/series' },
     { label: 'Phim lẻ', href: '/single-movies' },
@@ -14,6 +15,7 @@ const NAV_LINKS = [
     { label: 'Phim Hàn', href: '/country/han-quoc' },
     { label: 'Phim Trung', href: '/country/trung-quoc' },
     { label: 'Khám phá', href: '/discover' },
+    { label: 'Lịch chiếu', href: '/showtimes' },
 ];
 
 export function AppHeader() {

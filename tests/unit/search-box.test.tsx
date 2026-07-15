@@ -17,7 +17,7 @@ describe('SearchBox', () => {
                 }),
         );
         render(<SearchBox />);
-        fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Dấu' } });
+        fireEvent.change(screen.getByRole('combobox'), { target: { value: 'Dấu' } });
         expect(screen.queryByText('Dấu Vết')).not.toBeInTheDocument();
         await act(async () => {
             await vi.advanceTimersByTimeAsync(300);

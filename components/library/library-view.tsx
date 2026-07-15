@@ -18,7 +18,14 @@ export function LibraryView({ mode }: { mode: 'favorites' | 'history' }) {
                     {items.map((x) => (
                         <Link href={`/movie/${x.slug}`} key={x.movieId}>
                             <div className="relative aspect-[2/3] overflow-hidden rounded-xl">
-                                <Image src={x.posterUrl} alt={x.title} fill className="object-cover" />
+                                <Image
+                                    src={x.posterUrl}
+                                    alt={x.title}
+                                    fill
+                                    quality={85}
+                                    sizes="(max-width: 639px) 50vw, (max-width: 1023px) 33vw, 20vw"
+                                    className="object-cover"
+                                />
                             </div>
                             <b className="mt-2 block">{x.title}</b>
                             {'progress' in x && (

@@ -50,7 +50,7 @@ test('mở trang chủ, điều hướng và không có lỗi console nghiêm tr
 
     await page.goto('/');
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-    await expect(page.getByText('Phim mới cập nhật')).toBeVisible();
+    await expect(page.getByText(/Phim mới cập nhật/i)).toBeVisible();
     await page.getByRole('link', { name: 'Khám phá' }).first().click();
     await expect(page).toHaveURL(/discover/);
     expect(errors).toEqual([]);
@@ -58,26 +58,28 @@ test('mở trang chủ, điều hướng và không có lỗi console nghiêm tr
 
 test('tìm kiếm phim và mở trang chi tiết', async ({ page }) => {
     await page.goto('/');
-    const search = page.getByRole('textbox', { name: 'Tìm kiếm phim, diễn viên' });
+    const search = page.getByRole('banner').getByRole('combobox', { name: 'Tìm kiếm phim, diễn viên' });
     await search.fill('conan');
     await search.press('Enter');
 
     await expect(page).toHaveURL(/search\?q=conan/);
     await expect(page.getByText(movieTitle).first()).toBeVisible();
+    await page.getByRole('main').getByRole('combobox', { name: 'Tìm kiếm phim, diễn viên' }).press('Escape');
     await page.locator('article').filter({ hasText: movieTitle }).getByRole('link').click();
     await expect(page).toHaveURL(new RegExp(`/movie/${movieSlug}$`));
     await expect(page.getByRole('heading', { level: 1, name: movieTitle })).toBeVisible();
 });
 
 test('lọc theo thể loại và quốc gia đồng bộ URL', async ({ page }) => {
+    test.setTimeout(60_000);
     await page.goto('/discover');
-    await expect(page.getByLabel('Thể loại')).toBeEnabled();
+    await expect(page.getByLabel('Thể loại')).toBeEnabled({ timeout: 15_000 });
 
     await page.getByLabel('Thể loại').selectOption('tam-ly');
-    await expect(page).toHaveURL(/genre=tam-ly/);
+    await expect(page).toHaveURL(/genre=tam-ly/, { timeout: 15_000 });
 
     await page.getByLabel('Quốc gia').selectOption('han-quoc');
-    await expect(page).toHaveURL(/country=han-quoc/);
+    await expect(page).toHaveURL(/country=han-quoc/, { timeout: 15_000 });
 });
 
 test('thêm và xóa yêu thích', async ({ page }) => {

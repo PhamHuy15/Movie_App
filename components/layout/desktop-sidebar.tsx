@@ -26,6 +26,7 @@ const items = [
     ['Phim Hàn', '/country/han-quoc', Globe],
     ['Phim Trung', '/country/trung-quoc', Globe],
     ['Khám phá', '/discover', Compass],
+    ['Lịch chiếu', '/showtimes', Compass],
     ['Xem chung', '/watch-party', Users],
     ['Thư viện', '/library', Library],
     ['Lịch sử', '/history', History],

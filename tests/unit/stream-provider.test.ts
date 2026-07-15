@@ -2,11 +2,12 @@ import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import { NguoncStreamProvider } from '@/services/nguonc-stream-provider';
 import { getStreamProvider } from '@/services/stream-provider';
+import { CompositeStreamProvider } from '@/services/stream-provider';
 import { server } from '@/tests/mocks/server';
 
 describe('stream providers', () => {
     it('chọn NguoncStreamProvider làm stream provider chính', () => {
-        expect(getStreamProvider()).toBeInstanceOf(NguoncStreamProvider);
+        expect(getStreamProvider()).toBeInstanceOf(CompositeStreamProvider);
     });
 
     it('NguonC stream adapter chuẩn hóa response từ mock server', async () => {

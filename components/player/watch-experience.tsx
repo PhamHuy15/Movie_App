@@ -64,6 +64,8 @@ export function WatchExperience({ movie }: { movie: MovieDetail }) {
                         source={sources[activeSource]}
                         onEnded={playNext}
                         onSourceError={tryNextServer}
+                        season={1}
+                        episode={episode}
                     />
                 ) : (
                     <div className="grid aspect-video place-items-center px-6 text-center text-white/55">

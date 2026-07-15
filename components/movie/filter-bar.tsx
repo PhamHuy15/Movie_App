@@ -41,7 +41,7 @@ export function FilterBar() {
     );
 
     const update = (key: string, value: string) => {
-        const params = new URLSearchParams(current);
+        const params = new URLSearchParams(window.location.search);
         params.delete('page');
 
         if (value) {

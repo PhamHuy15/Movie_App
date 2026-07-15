@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { checkRateLimit } from '@/lib/rate-limit';
-import { movieCatalogService } from '@/services/movie-catalog.service';
+import { getMovieProvider } from '@/services/movie-provider';
 
 const schema = z.object({
     q: z.string().trim().max(100).optional(),
+    page: z.coerce.number().int().min(1).default(1),
+    category: z.string().optional(),
+    genre: z.string().optional(),
+    country: z.string().optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -24,9 +28,15 @@ export async function GET(request: NextRequest) {
     const parsed = schema.safeParse(Object.fromEntries(request.nextUrl.searchParams));
     if (!parsed.success) return NextResponse.json({ error: 'Invalid query' }, { status: 400 });
 
-    const data = parsed.data.q ? await movieCatalogService.search(parsed.data.q) : await movieCatalogService.list();
+    const data = await getMovieProvider().listMovies({
+        page: parsed.data.page,
+        keyword: parsed.data.q,
+        category: parsed.data.category,
+        genre: parsed.data.genre,
+        country: parsed.data.country,
+    });
     return NextResponse.json(
-        { data },
+        { data: data.movies, pagination: { totalPages: data.totalPages, totalItems: data.totalItems, currentPage: data.currentPage } },
         {
             headers: {
                 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',

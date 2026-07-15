@@ -8,8 +8,8 @@ import type {
 
 const FALLBACK_POSTER = '/placeholder.svg';
 
-function resolveImage(url?: string | null): string {
-    if (!url) return FALLBACK_POSTER;
+function resolveImage(url?: unknown): string {
+    if (typeof url !== 'string' || !url.trim()) return FALLBACK_POSTER;
     if (url.startsWith('http://') || url.startsWith('https://')) return url;
     return `https://phim.nguonc.com${url.startsWith('/') ? '' : '/'}${url}`;
 }
@@ -150,16 +150,22 @@ export function normalizeNguoncFilm(film: NguoncFilmListItem): Movie {
         title: film.name,
         originalTitle: film.original_name ?? film.origin_name ?? film.name,
         overview: film.description?.trim() ?? '',
-        posterUrl: resolveImage(film.poster_url || film.thumb_url),
-        backdropUrl: resolveImage(film.thumb_url || film.poster_url),
+        posterUrl: resolveImage(film.thumb_url || film.poster_url),
+        backdropUrl: resolveImage(film.poster_url || film.thumb_url),
         year: extractYear(film),
         rating: 0,
+        ratingCount: 0,
+        viewCount: Number(film.view) || 0,
+        language: film.language ?? film.lang ?? undefined,
+        status: statusText(film),
+        totalEpisodes: totalEpisodes(film),
         genres: extractGenres(film.category),
         country: extractCountry(film),
         type: detectType(film),
         quality: film.quality?.trim() || undefined,
         latestEpisode: parseLatestEpisode(film),
-        featured: false,
+        featured: Boolean(film.view && film.view > 100000),
+        badges: [film.quality, parseLatestEpisode(film)].filter(Boolean) as string[],
     };
 }
 
