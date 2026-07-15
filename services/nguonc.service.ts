@@ -1,5 +1,5 @@
 const DEFAULT_BASE_URL = 'https://phim.nguonc.com/api';
-const BASE_URL = process.env.NGUONC_API_BASE_URL ?? DEFAULT_BASE_URL;
+const BASE_URL = (process.env.NGUONC_API_BASE_URL?.trim() || DEFAULT_BASE_URL).replace(/\/$/, '');
 const DEFAULT_TIMEOUT = 12_000;
 
 export type NguoncCategorySlug = 'phim-bo' | 'phim-le' | 'hoat-hinh' | 'tv-shows' | 'dang-chieu';
@@ -82,13 +82,29 @@ export interface NguoncDetailResponse {
 async function fetchApi<T>(path: string, revalidate = 300): Promise<T | null> {
     try {
         const res = await fetch(`${BASE_URL}${path}`, {
+            headers: {
+                Accept: 'application/json',
+                'User-Agent': 'CinevaDemo/1.0 (+https://movie-app-one-kohl.vercel.app)',
+            },
             next: { revalidate },
             signal: AbortSignal.timeout(DEFAULT_TIMEOUT),
         });
 
-        if (!res.ok) return null;
+        if (!res.ok) {
+            console.error('[NguonC] Request failed', {
+                status: res.status,
+                path,
+                region: process.env.VERCEL_REGION ?? 'local',
+            });
+            return null;
+        }
         return (await res.json()) as T;
-    } catch {
+    } catch (error) {
+        console.error('[NguonC] Request error', {
+            path,
+            region: process.env.VERCEL_REGION ?? 'local',
+            message: error instanceof Error ? error.message : String(error),
+        });
         return null;
     }
 }
