@@ -72,7 +72,8 @@ export function WatchExperience({ movie }: { movie: MovieDetail }) {
                         <div>
                             <p className="font-display text-2xl font-semibold text-white">Chưa có nguồn phát</p>
                             <p className="mt-2 text-sm">
-                                {error || 'NguonC chưa trả về tập phim hoặc link phát cho nội dung này.'}
+                                {error ||
+                                    'Không tìm thấy nguồn HLS/MP4 không quảng cáo. Nguồn nhúng bên thứ ba đã được tắt để tránh quảng cáo và popup.'}
                             </p>
                             <button
                                 onClick={() => void loadSources()}

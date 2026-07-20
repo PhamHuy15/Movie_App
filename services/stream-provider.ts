@@ -13,7 +13,10 @@ function uniqueSources(sources: StreamSource[]) {
 }
 
 export class CompositeStreamProvider implements StreamProvider {
-    constructor(private readonly providers: StreamProvider[] = [new PhimApiStreamProvider(), new OPhimStreamProvider(), new NguoncStreamProvider()]) {}
+    constructor(
+        private readonly providers: StreamProvider[] = [new PhimApiStreamProvider(), new OPhimStreamProvider(), new NguoncStreamProvider()],
+        private readonly allowEmbedSources = process.env.ALLOW_EMBED_SOURCES === 'true',
+    ) {}
 
     async getMovieSources(movieId: string) {
         return this.collect((provider) => provider.getMovieSources(movieId));
@@ -26,7 +29,11 @@ export class CompositeStreamProvider implements StreamProvider {
         const all = uniqueSources(results.flatMap((result) => (result.status === 'fulfilled' ? result.value : [])));
         const direct = all.filter((source) => source.type !== 'embed');
         const embeds = all.filter((source) => source.type === 'embed');
-        return direct.length ? [...direct, ...embeds] : embeds;
+
+        // Third-party embed players can inject ads and popups that cannot be
+        // removed from Cineva because their iframe runs on another origin.
+        // Keep embeds opt-in so production uses ad-free HLS/MP4 sources only.
+        return this.allowEmbedSources ? [...direct, ...embeds] : direct;
     }
 }
 

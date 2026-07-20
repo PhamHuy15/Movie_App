@@ -4,6 +4,24 @@ import { NguoncStreamProvider } from '@/services/nguonc-stream-provider';
 import { getStreamProvider } from '@/services/stream-provider';
 import { CompositeStreamProvider } from '@/services/stream-provider';
 import { server } from '@/tests/mocks/server';
+import type { StreamProvider, StreamSource } from '@/types/movie';
+
+const directSource: StreamSource = {
+    id: 'direct',
+    serverName: 'Direct',
+    type: 'hls',
+    url: 'https://stream.test/movie.m3u8',
+};
+const embedSource: StreamSource = {
+    id: 'embed',
+    serverName: 'Embed',
+    type: 'embed',
+    url: 'https://embed.test/movie',
+};
+const mixedProvider: StreamProvider = {
+    getMovieSources: async () => [embedSource, directSource],
+    getEpisodeSources: async () => [embedSource, directSource],
+};
 
 describe('stream providers', () => {
     it('chọn NguoncStreamProvider làm stream provider chính', () => {
@@ -29,5 +47,17 @@ describe('stream providers', () => {
         );
         const sources = await new NguoncStreamProvider().getMovieSources('missing-slug');
         expect(sources).toEqual([]);
+    });
+
+    it('loại nguồn embed ở chế độ không quảng cáo', async () => {
+        const sources = await new CompositeStreamProvider([mixedProvider], false).getMovieSources('phim-1');
+
+        expect(sources).toEqual([directSource]);
+    });
+
+    it('chỉ trả nguồn embed khi được bật rõ ràng', async () => {
+        const sources = await new CompositeStreamProvider([mixedProvider], true).getMovieSources('phim-1');
+
+        expect(sources).toEqual([directSource, embedSource]);
     });
 });

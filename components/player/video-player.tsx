@@ -92,7 +92,21 @@ export function VideoPlayer({ movie, source, onEnded, onSourceError, season, epi
         };
     }, [source, movie, saveProgress, retryKey, onSourceError, season, episode]);
 
-    if (source.type === 'embed') return <div className="aspect-video w-full bg-black"><iframe src={source.url} className="h-full w-full" allowFullScreen allow="autoplay; encrypted-media; picture-in-picture" title={`Trình phát ${movie.title}`} referrerPolicy="origin" /></div>;
+    if (source.type === 'embed') {
+        return (
+            <div className="aspect-video w-full bg-black">
+                <iframe
+                    src={source.url}
+                    className="h-full w-full"
+                    allowFullScreen
+                    allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                    sandbox="allow-scripts allow-same-origin allow-presentation"
+                    title={`Trình phát ${movie.title}`}
+                    referrerPolicy="no-referrer"
+                />
+            </div>
+        );
+    }
 
     if (error) return <div className="grid aspect-video place-items-center bg-black px-6 text-center text-white/65"><div><AlertTriangle className="mx-auto mb-3 text-amber-400" /><p>{error}</p><button onClick={() => setRetryKey((value) => value + 1)} className="mt-5 inline-flex items-center gap-2 rounded-full bg-white/10 px-5 py-2.5 font-medium hover:bg-white/15"><RefreshCw size={16} />Thử lại</button></div></div>;
 
